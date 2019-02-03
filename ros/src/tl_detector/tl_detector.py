@@ -14,7 +14,8 @@ from scipy.spatial import KDTree
 import numpy as np
 import time
 
-STATE_COUNT_THRESHOLD = 3
+STATE_COUNT_THRESHOLD_RED = 2
+STATE_COUNT_THRESHOLD_GREEN = 4
 
 class TLDetector(object):
     def __init__(self):
@@ -96,17 +97,34 @@ class TLDetector(object):
         '''
         # print("image_cb")
 
-        if self.state != state:
-            self.state_count = 0
-            self.state = state
-        elif self.state_count >= STATE_COUNT_THRESHOLD:
-            self.last_state = self.state
-            light_wp = light_wp if state == TrafficLight.RED else -1
-            self.last_wp = light_wp
-            self.upcoming_red_light_pub.publish(Int32(light_wp))
-            # print("tl_detector red light")
+        if self.state == TrafficLight.GREEN:
+            if self.state != state:
+                self.state_count = 0
+                self.state = state
+            elif self.state_count >= STATE_COUNT_THRESHOLD_RED:
+                self.last_state = self.state
+                light_wp = light_wp if state == TrafficLight.RED else -1
+                self.last_wp = light_wp
+                self.upcoming_red_light_pub.publish(Int32(light_wp))
+                # print("tl_detector red light")
+            else:
+                self.upcoming_red_light_pub.publish(Int32(self.last_wp))
         else:
-            self.upcoming_red_light_pub.publish(Int32(self.last_wp))
+            if self.state != state:
+                self.state_count = 0
+                self.state = state
+            elif self.state_count >= STATE_COUNT_THRESHOLD_GREEN:
+                self.last_state = self.state
+                light_wp = light_wp if state == TrafficLight.RED else -1
+                self.last_wp = light_wp
+                self.upcoming_red_light_pub.publish(Int32(light_wp))
+                # print("tl_detector red light")
+            else:
+                self.upcoming_red_light_pub.publish(Int32(self.last_wp))
+
+
+
+
         self.state_count += 1
 
     def get_closest_waypoint(self, x, y):

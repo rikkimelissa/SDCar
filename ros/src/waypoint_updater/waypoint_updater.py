@@ -124,6 +124,7 @@ class WaypointUpdater(object):
             if vel < 1.:
                 vel = 0
 
+            # print(vel)
             p.twist.twist.linear.x = min(vel, wp.twist.twist.linear.x)
             temp.append(p)
 
