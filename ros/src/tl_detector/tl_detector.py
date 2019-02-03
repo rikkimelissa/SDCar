@@ -6,12 +6,13 @@ from styx_msgs.msg import TrafficLightArray, TrafficLight
 from styx_msgs.msg import Lane
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
-from light_classification.tl_classifier import TLClassifier
+# from light_classification.tl_classifier import TLClassifier
 import tf
 import cv2
 import yaml
 from scipy.spatial import KDTree
 import numpy as np
+import time
 
 STATE_COUNT_THRESHOLD = 3
 
@@ -23,9 +24,6 @@ class TLDetector(object):
         self.waypoints = None
         self.camera_image = None
         self.lights = []
-
-        sub1 = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
-        sub2 = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
 
         '''
         /vehicle/traffic_lights provides you with the location of the traffic light in 3D map space and
@@ -43,7 +41,7 @@ class TLDetector(object):
         self.upcoming_red_light_pub = rospy.Publisher('/traffic_waypoint', Int32, queue_size=1)
 
         self.bridge = CvBridge()
-        self.light_classifier = TLClassifier()
+        # self.light_classifier = TLClassifier()
         self.listener = tf.TransformListener()
 
         self.state = TrafficLight.UNKNOWN
@@ -52,6 +50,11 @@ class TLDetector(object):
         self.state_count = 0
         self.waypoint_tree = None
         self.waypoints_2d = None
+        self.light_id = 2
+
+        sub1 = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
+        sub2 = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
+        sub3 = rospy.Subscriber('/tl_classifier', Int32, self.light_cb)
 
         rospy.spin()
 
@@ -65,6 +68,10 @@ class TLDetector(object):
             self.waypoint_tree = KDTree(self.waypoints_2d)
         # pass
 
+    def light_cb(self, msg):
+        # print(msg)
+        self.light_id = msg.data;
+        # print(self.light_id)
 
     def traffic_cb(self, msg):
         self.lights = msg.lights
@@ -139,16 +146,10 @@ class TLDetector(object):
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
 
         """
-        # if(not self.has_image):
-        #     self.prev_light_loc = None
-        #     return False
+        # print(start-end)
 
-        # cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
-
-        # #Get classification
-        # return self.light_classifier.get_classification(cv_image)
-
-        return light.state
+        return self.light_id
+        # return light.state
 
     def process_traffic_lights(self):
         """Finds closest visible traffic light, if one exists, and determines its

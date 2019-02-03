@@ -103,8 +103,11 @@ class WaypointUpdater(object):
 
         if self.stopline_wp_idx == -1 or (self.stopline_wp_idx >= farthest_idx):
             lane.waypoints = base_waypoints
+            # if (self.stopline_wp_idx >= farthest_idx):
+                # print('too far away')
         else:
             lane.waypoints = self.decelerate_waypoints(base_waypoints, closest_idx)
+            # print("decelerating")
 
         return lane
 

@@ -18,8 +18,8 @@ class Controller(object):
         self.yaw_controller = YawController(wheel_base, steer_ratio, .1, max_lat_accel, max_steer_angle)
 
         kp = .3
-        ki = .1
-        kd = 0
+        ki = .05 #.1
+        kd = .05 # 0
         mn = 0
         mx = .2
         self.throttle_controller = PID(kp, ki, kd, mn, mx)
@@ -41,6 +41,8 @@ class Controller(object):
     def control(self, current_vel, dbw_enabled, linear_vel, angular_vel):
         # TODO: Change the arg, kwarg list to suit your needs
 
+        # print(linear_vel, angular_vel)
+        
         if not dbw_enabled:
             self.throttle_controller.reset()
             return 0,0,0
